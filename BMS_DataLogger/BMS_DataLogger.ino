@@ -23,7 +23,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-const int chipSelect = 4;
+const int chipSelect = SS;
 
 const int S0 = A4;
 const int S1 = A3;
@@ -32,28 +32,37 @@ const int S3 = A1;
 const int SIG = A0;
 
 void setup() {
-
-  pinMode(4, INPUT);
-  pinMode(5, INPUT);
+  pinMode(10, OUTPUT);
+  digitalWrite(10,HIGH);
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  digitalWrite(2,LOW);
+  digitalWrite(3,LOW);
   
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+  Serial.print("ChipSelect = ");
+  Serial.println( SS );
 
-
-  Serial.print("Initializing SD card...");
+  Serial.println("Initializing SD card...");
   delay(100);
   
   // see if the card is present and can be initialized:
   if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
+    Serial.println("Card SS failed, or not present");
+    digitalWrite(3,HIGH);
+    digitalWrite(2,LOW);
     // don't do anything more:
-   // while (1);
+    while (1);
   }
-  Serial.println("card initialized.");
-
+  else{
+    Serial.println("card initialized.");
+    digitalWrite(2,HIGH);
+    digitalWrite(3,LOW);
+  }
   pinMode(SIG, INPUT);
   pinMode(S0, OUTPUT);
   pinMode(S1, OUTPUT);
@@ -89,36 +98,36 @@ void log_data(int a, int b, int c, int d){
 
 void loop() {
   
-//  File dataFile = SD.open("BMS_datalog.txt", FILE_WRITE);
+  File dataFile = SD.open("BMS_datalog.txt", FILE_WRITE);
   
-//  if (dataFile) {
+  if (dataFile) {
  
-      Serial.print(micros());                           //dataFile.print(micros());
-      Serial.print(", ");                               //dataFile.print("\t");
+      Serial.print(micros());                           dataFile.print(micros());
+      Serial.print(", ");                               dataFile.print(", ");
  
-      log_data(0,0,0,0); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(1,0,0,0); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(0,1,0,0); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(1,1,0,0); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(0,0,1,0); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(1,0,1,0); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(0,1,1,0); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(1,1,1,0); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(0,0,0,1); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(1,0,0,1); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(0,1,0,1); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(1,1,0,1); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(0,0,1,1); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(1,0,1,1); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(0,1,1,1); Serial.print(analogRead(SIG)); Serial.print(", "); //dataFile.print(analogRead(SIG)); dataFile.print(",");
-      log_data(1,1,1,1); Serial.print(analogRead(SIG));                     //dataFile.print(analogRead(SIG)); 
+      log_data(0,0,0,0); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(1,0,0,0); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(0,1,0,0); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(1,1,0,0); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(0,0,1,0); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(1,0,1,0); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(0,1,1,0); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(1,1,1,0); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(0,0,0,1); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(1,0,0,1); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(0,1,0,1); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(1,1,0,1); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(0,0,1,1); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(1,0,1,1); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(0,1,1,1); Serial.print(analogRead(SIG)); Serial.print(", "); dataFile.print(analogRead(SIG)); dataFile.print(",");
+      log_data(1,1,1,1); Serial.print(analogRead(SIG));                     dataFile.print(analogRead(SIG)); 
 
-      Serial.println("");                               //dataFile.println("");
+      Serial.println("");                                                   dataFile.println("");
  
-/*      dataFile.close();
+      dataFile.close();
       
   }
   else
       Serial.println("error opening txt");
-*/     
+     
 }
