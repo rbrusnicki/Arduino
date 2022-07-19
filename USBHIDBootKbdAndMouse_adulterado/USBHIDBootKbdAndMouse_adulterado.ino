@@ -1,7 +1,14 @@
+/// NESTE CÓDIGO O SCROLL NÃO FUNCIONA DIREITO - VERIFICAR NO TERMINAL
+
+
+// USB host mouse from USB Host Shield Library. Install using Library Manager
 #include <hidboot.h>
 #include <usbhub.h>
 
-// Satisfy IDE, which only needs to see the include statment in the ino.
+// USB device mouse library included with Arduino IDE 1.8.5
+#include <Mouse.h>
+
+// Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
 #endif
@@ -9,7 +16,7 @@
 
 class MouseRptParser : public MouseReportParser
 {
-  protected:
+protected:
     void OnMouseMove(MOUSEINFO *mi);
     void OnLeftButtonUp(MOUSEINFO *mi);
     void OnLeftButtonDown(MOUSEINFO *mi);
@@ -27,17 +34,6 @@ class MouseRptParser : public MouseReportParser
 
 void MouseRptParser::Parse(USBHID *hid, bool is_rpt_id, uint8_t len, uint8_t *buf)
 {
-#if 0
-  // Demo -- Swap left and right buttons on 4 button Kensington trackball
-  if (len > 0) {
-    uint8_t button1 = buf[0] & 0x01;
-    uint8_t button2 = buf[0] & 0x02;
-    uint8_t button3 = buf[0] & 0x04;
-    uint8_t button4 = buf[0] & 0x08;
-    buf[0] = (buf[0] & 0xF0) | (button1 << 1) | (button2 >> 1) |
-                               (button3 << 1) | (button4 >> 1);
-  }
-#endif
   // Run parent class method.
   MouseReportParser::Parse(hid, is_rpt_id, len, buf);
 
@@ -63,7 +59,6 @@ void MouseRptParser::Parse(USBHID *hid, bool is_rpt_id, uint8_t len, uint8_t *bu
     //HID().SendReport(1,mouseRpt,sizeof(mouseRpt));
   }
 };
-
 void MouseRptParser::OnMouseMove(MOUSEINFO *mi)
 {
   Serial.print("dx=");
@@ -71,27 +66,27 @@ void MouseRptParser::OnMouseMove(MOUSEINFO *mi)
   Serial.print(" dy=");
   Serial.println(mi->dY, DEC);
 };
-void MouseRptParser::OnLeftButtonUp	(MOUSEINFO *mi)
+void MouseRptParser::OnLeftButtonUp  (MOUSEINFO *mi)
 {
   Serial.println("L Butt Up");
 };
-void MouseRptParser::OnLeftButtonDown	(MOUSEINFO *mi)
+void MouseRptParser::OnLeftButtonDown (MOUSEINFO *mi)
 {
   Serial.println("L Butt Dn");
 };
-void MouseRptParser::OnRightButtonUp	(MOUSEINFO *mi)
+void MouseRptParser::OnRightButtonUp  (MOUSEINFO *mi)
 {
   Serial.println("R Butt Up");
 };
-void MouseRptParser::OnRightButtonDown	(MOUSEINFO *mi)
+void MouseRptParser::OnRightButtonDown  (MOUSEINFO *mi)
 {
   Serial.println("R Butt Dn");
 };
-void MouseRptParser::OnMiddleButtonUp	(MOUSEINFO *mi)
+void MouseRptParser::OnMiddleButtonUp (MOUSEINFO *mi)
 {
   Serial.println("M Butt Up");
 };
-void MouseRptParser::OnMiddleButtonDown	(MOUSEINFO *mi)
+void MouseRptParser::OnMiddleButtonDown (MOUSEINFO *mi)
 {
   Serial.println("M Butt Dn");
 };
@@ -118,6 +113,9 @@ void MouseRptParser::OnButton5Down (MOUSEINFO *mi)
 {
   Serial.println("Butt 5 Dn");
 };
+
+
+
 
 class KbdRptParser : public KeyboardReportParser
 {
@@ -207,6 +205,10 @@ void KbdRptParser::OnKeyPressed(uint8_t key)
   Serial.println((char)key);
 };
 
+
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% do começo até aqui é o mesmo código
+
 USB     Usb;
 USBHub     Hub(&Usb);
 
@@ -217,23 +219,31 @@ HIDBoot<USB_HID_PROTOCOL_MOUSE>    HidMouse(&Usb);
 KbdRptParser KbdPrs;
 MouseRptParser MousePrs;
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Daqui...
+
 void setup()
 {
-  Serial.begin( 115200 );
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+ Serial.begin( 115200 );
+  uint8_t attempts = 30;
+  while (!Serial && attempts--) {
+    delay(100); // Wait for serial port to connect for up to 3 seconds
+  }
   Serial.println("Start");
 
-  if (Usb.Init() == -1)
-    Serial.println("OSC did not start.");
-
+  if (Usb.Init() == -1) {
+    Serial.println("USB host shield did not start.");
+  }
   delay( 200 );
+
+  HidMouse.SetReportParser(0, &MousePrs);
+
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% até aqui é o mesmo código
 
   HidComposite.SetReportParser(0, &KbdPrs);
   HidComposite.SetReportParser(1, &MousePrs);
   HidKeyboard.SetReportParser(0, &KbdPrs);
-  HidMouse.SetReportParser(0, &MousePrs);
+  
 }
 
 void loop()
